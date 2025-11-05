@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const autocompleteList = document.getElementById('autocompleteList');
 
     let allData = [];
-    let siteColumnValues = new Set(); // Para o autocomplete
+    let siteColumnValues = new Set(); 
 
     // Função para carregar e processar o CSV
     async function loadCSV() {
@@ -21,18 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const text = await response.text();
             
-            // Separa por linhas e ignora a primeira (cabeçalho)
             const lines = text.trim().split('\n');
             const dataLines = lines.slice(1); 
             
             allData = dataLines.map(line => {
-                // *** Usando ';' como delimitador ***
                 const [siteRaw, pci, setor, rede] = line.split(';');
                 
-                // Trata o campo Site para pegar APENAS os 7 primeiros caracteres alfanuméricos
                 const cleanedSite = siteRaw ? siteRaw.trim().toUpperCase().slice(0, 7).replace(/[^A-Z0-9]/g, '') : '';
                 
-                // Popula o set de valores de site
                 if (cleanedSite && cleanedSite.length === 7) {
                     siteColumnValues.add(cleanedSite);
                 }
@@ -43,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setor: setor ? setor.trim() : '',
                     rede: rede ? rede.trim().toUpperCase() : ''
                 };
-            }).filter(item => item.site.length === 7); // Filtra só sites válidos de 7 caracteres
+            }).filter(item => item.site.length === 7); 
             
             console.log(`CSV carregado. Total de ${allData.length} registros válidos.`);
 
@@ -53,19 +49,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Lógica de Validação e Formatação ---
+    // *** FUNÇÃO DE LIMPEZA AJUSTADA: Não zera mais as mensagens de erro ***
+    function resetForm() {
+        inputSite.value = '';
+        inputPCI.value = '';
+        inputSite.disabled = false; 
+        inputPCI.disabled = false;  
+        autocompleteList.innerHTML = '';
+        
+        // As mensagens de erro (siteError.textContent, pciError.textContent) 
+        // são limpas no início do submit, ou após a validação bem sucedida.
+        // Se a validação falhar, queremos que elas permaneçam visíveis antes do foco.
+        inputSite.focus();
+    }
+    
+    // Função auxiliar para limpar *apenas* as mensagens de erro
+    function clearErrors() {
+        siteError.textContent = '';
+        pciError.textContent = '';
+    }
 
-    // 1. Input Site (7 chars, alfanumérico, maiúsculas)
+    // --- Lógica de Validação e Formatação (event listeners) ---
+
     inputSite.addEventListener('input', (e) => {
         let value = e.target.value;
-        
-        // Converte para maiúsculas e filtra caracteres inválidos (apenas letras e números)
         value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         e.target.value = value;
         
-        siteError.textContent = ''; // Limpa a mensagem de erro
+        // Limpa erros APENAS do campo atual ao digitar
+        siteError.textContent = ''; 
 
-        // Desabilita/Limpa o campo PCI quando o Site é preenchido
         if (value.length > 0) {
             inputPCI.disabled = true;
             inputPCI.value = '';
@@ -74,25 +87,21 @@ document.addEventListener('DOMContentLoaded', () => {
             inputPCI.disabled = false;
         }
         
-        // Autocomplete (após o 6º caractere)
         if (value.length >= 6) {
             showAutocomplete(value);
         } else {
-            autocompleteList.innerHTML = ''; // Limpa antes de 6
+            autocompleteList.innerHTML = ''; 
         }
     });
 
-    // 2. Input PCI (1 a 3 dígitos, apenas números)
     inputPCI.addEventListener('input', (e) => {
         let value = e.target.value;
-        
-        // Filtra apenas números
         value = value.replace(/[^0-9]/g, '');
         e.target.value = value;
 
-        pciError.textContent = ''; // Limpa a mensagem de erro
+        // Limpa erros APENAS do campo atual ao digitar
+        pciError.textContent = ''; 
 
-        // Desabilita/Limpa o campo Site quando o PCI é preenchido
         if (value.length > 0) {
             inputSite.disabled = true;
             inputSite.value = '';
@@ -103,22 +112,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Lógica de Autocomplete (Garante que só Sites válidos sejam sugeridos) ---
+    // --- Lógica de Autocomplete (sem alterações) ---
     function showAutocomplete(text) {
         if (text.length < 6) return;
 
         autocompleteList.innerHTML = '';
         
-        // 1. Filtrar (apenas sites que começam com o texto digitado)
         let matchingSites = Array.from(siteColumnValues).filter(site => 
             site.startsWith(text)
         );
         
-        // 2. Ordenar alfabeticamente crescente
         matchingSites.sort();
-
-        // 3. Limitar a 10
-        matchingSites = matchingSites.slice(0, 10);
 
         if (matchingSites.length > 0) {
             matchingSites.forEach(site => {
@@ -127,32 +131,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.addEventListener('click', () => {
                     inputSite.value = site;
                     autocompleteList.innerHTML = '';
-                    siteError.textContent = ''; 
+                    clearErrors(); // Limpa erros ao selecionar autocomplete
                     inputPCI.disabled = true;
                     inputPCI.value = '';
+                    searchForm.focus(); 
                 });
                 autocompleteList.appendChild(item);
             });
         }
     }
     
-    // Esconde o autocomplete ao clicar fora
     document.addEventListener('click', (e) => {
         if (!autocompleteList.contains(e.target) && e.target !== inputSite) {
             autocompleteList.innerHTML = '';
         }
     });
 
-    // --- Lógica de Pesquisa (Ajustada) ---
+    // --- Lógica de Pesquisa (COM EXIBIÇÃO DE ERROS E LIMPEZA CORRIGIDAS) ---
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Limpa resultados anteriores e erros
+        // 1. Limpa resultados anteriores e erros no início
         dataTableBody.innerHTML = '';
         resultsContainer.classList.add('hidden');
         noResultsMessage.classList.add('hidden');
-        siteError.textContent = '';
-        pciError.textContent = '';
+        clearErrors();
 
         const siteValue = inputSite.value.trim();
         const pciValue = inputPCI.value.trim();
@@ -160,41 +163,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSiteFilled = siteValue.length > 0;
         const isPciFilled = pciValue.length > 0;
         
-        // 1. Validação de Exclusividade (Apenas um campo deve estar preenchido)
+        let validationFailed = false;
+
+        // Validação 1: Exclusividade
         if (!isSiteFilled && !isPciFilled) {
              siteError.textContent = 'Preencha o campo Site ou o campo PCI para pesquisar.';
              pciError.textContent = 'Preencha o campo Site ou o campo PCI para pesquisar.';
-             return;
+             validationFailed = true;
         }
         
-        // 2. Validações de Formato e Existência
-
-        if (isSiteFilled) {
+        // Validação 2: Formato e Existência (Site)
+        if (!validationFailed && isSiteFilled) {
             if (siteValue.length !== 7 || !/^[A-Z0-9]{7}$/.test(siteValue)) {
                 siteError.textContent = 'O campo Site deve ter exatamente 7 caracteres (letras e números).';
-                return;
+                validationFailed = true;
             }
-            // Valida se o Site existe na coluna 'site'
-            if (!siteColumnValues.has(siteValue)) {
+            if (!validationFailed && !siteColumnValues.has(siteValue)) {
                 siteError.textContent = `O Site "${siteValue}" não existe na base de dados.`;
-                return;
+                validationFailed = true;
             }
-
-        } else if (isPciFilled) {
+        } 
+        
+        // Validação 2: Formato e Existência (PCI)
+        else if (!validationFailed && isPciFilled) {
             if (pciValue.length === 0 || pciValue.length > 3 || !/^[0-9]+$/.test(pciValue)) {
                  pciError.textContent = 'O campo PCI deve ter de 1 a 3 dígitos numéricos.';
-                 return;
+                 validationFailed = true;
             }
-            // Valida se o PCI existe na coluna 'pci'
-            if (!allData.some(item => item.pci === pciValue)) {
+            if (!validationFailed && !allData.some(item => item.pci === pciValue)) {
                 pciError.textContent = `O PCI "${pciValue}" não existe na base de dados.`;
-                return;
+                validationFailed = true;
             }
         }
         
+        // *** CORREÇÃO AQUI: Se falhar, RETORNA e DEIXA AS MENSAGENS VISÍVEIS ***
+        if (validationFailed) {
+            // Não chama resetForm() para não limpar os campos e as mensagens de erro.
+            return;
+        }
+        
+        // Se a validação passou, limpamos os erros antes da pesquisa e seguimos para o filtro
+        clearErrors();
+
         // 3. Filtragem
         let filteredData = [];
-
         if (isSiteFilled) {
             filteredData = allData.filter(item => item.site === siteValue);
         } else if (isPciFilled) {
@@ -209,19 +221,20 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsContainer.classList.remove('hidden');
             noResultsMessage.classList.remove('hidden');
         }
+
+        // *** LIMPEZA GARANTIDA APÓS PESQUISA BEM SUCEDIDA/SEM RESULTADOS ***
+        resetForm(); 
     });
 
-    // --- Lógica de Renderização da Tabela ---
+    // --- Lógica de Renderização da Tabela (sem alterações) ---
     function renderTable(data) {
         data.forEach(item => {
             const row = dataTableBody.insertRow();
             
-            // Destaque para 5G
             if (item.rede.includes('5G')) {
                 row.classList.add('row-5g');
             }
 
-            // Inserção dos dados na ordem: site, pci, setor, rede
             row.insertCell().textContent = item.site;
             row.insertCell().textContent = item.pci;
             row.insertCell().textContent = item.setor;
@@ -229,6 +242,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Inicia o carregamento dos dados quando a página estiver pronta
     loadCSV();
 });
