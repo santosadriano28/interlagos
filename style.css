@@ -1,10 +1,8 @@
-/* Configuração Básica */
 :root {
-    --primary-color: #d9162a; 
-    --secondary-color: #f8f9fa; 
-    --hover-color: #a51624; 
-    --5g-bg-color: #fce4ec; 
-    --error-color: #d9162a; 
+    --primary-color: #dc3545; /* Vermelho principal */
+    --secondary-color: #f8f9fa; /* Cinza claro */
+    --hover-color: #c82333; /* Vermelho mais escuro para hover */
+    --error-color: #dc3545; /* Vermelho para mensagens de erro */
 }
 
 body {
@@ -21,7 +19,6 @@ body {
     padding: 20px;
 }
 
-/* --- Títulos --- */
 .page-title {
     text-align: center;
     color: var(--primary-color);
@@ -98,7 +95,7 @@ body {
     transform: translateY(0);
 }
 
-/* --- Preencimento automatico --- */
+/* --- Autocomplete --- */
 .autocomplete-items {
     position: absolute;
     border: 1px solid #d4d4d4;
@@ -123,12 +120,11 @@ body {
     background-color: #e9e9e9;
 }
 
-/* --- Tabela de Resultados --- */
 .results-container {
     margin-top: 40px;
     margin-left: auto;
     margin-right: auto;
-    max-width: 500px;
+    max-width: 500px; 
 }
 
 .results-title {
@@ -151,7 +147,7 @@ body {
 }
 
 .table-responsive {
-    overflow-x: auto; /* Rolagem horizontal em telas menores */
+    overflow-x: auto; 
 }
 
 #dataTable {
@@ -176,7 +172,7 @@ body {
     color: white;
     font-weight: bold; 
     text-transform: uppercase;
-    text-align: center;
+    text-align: center; 
 }
 
 #dataTable th:nth-child(1), #dataTable td:nth-child(1),
@@ -187,17 +183,18 @@ body {
     min-width: 80px; 
 }
 
+/* Linhas pares ficam cinza claro */
 #dataTable tbody tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-#dataTable tbody tr:hover {
-    background-color: #f1f1f1;
+/* Linhas ímpares ficam brancas */
+#dataTable tbody tr:nth-child(odd) {
+    background-color: white; 
 }
 
-/* Destaque para linhas 5G */
-.row-5g {
-    background-color: var(--5g-bg-color); 
+#dataTable tbody tr:hover {
+    background-color: #f1f1f1;
 }
 
 @media (min-width: 600px) {
