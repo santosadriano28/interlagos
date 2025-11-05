@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Site e PCI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="container">
+        <h1 class="page-title">Pesquisa de Site e PCI</h1>
+
+        <form id="searchForm" class="search-form centered-form"> 
+            <div class="input-group">
+                <label for="inputSite">Site:</label>
+                <input type="text" id="inputSite" name="site" maxlength="7" placeholder="Ex: SMSRON1">
+                <div id="autocompleteList" class="autocomplete-items"></div>
+                <small id="siteError" class="error-message"></small>
+            </div>
+
+            <div class="input-group">
+                <label for="inputPCI">PCI:</label>
+                <input type="text" id="inputPCI" name="pci" pattern="[0-9]*" maxlength="3" placeholder="Ex: 1 a 999">
+                <small id="pciError" class="error-message"></small>
+            </div>
+
+            <button type="submit" id="searchButton" class="modern-button">Pesquisar</button>
+        </form>
+
+        <div id="resultsContainer" class="results-container hidden">
+            <h2 class="results-title">Resultado da Pesquisa</h2>
+            <div class="table-responsive">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Site</th>
+                            <th>PCI</th>
+                            <th>Setor</th>
+                            <th>Rede</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+            <p id="noResults" class="no-results-message hidden">Nenhum resultado encontrado para os critérios de pesquisa.</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
