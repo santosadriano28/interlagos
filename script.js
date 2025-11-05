@@ -45,11 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Falha ao carregar ou processar o CSV:', error);
-            alert('Não foi possível carregar os dados. Verifique o arquivo dataBase.csv e o delimitador (deve ser ;).');
+            alert('Não foi possível carregar os dados. Verifique o arquivo dataBase.csv).');
         }
     }
 
-    // *** FUNÇÃO DE LIMPEZA AJUSTADA: Não zera mais as mensagens de erro ***
     function resetForm() {
         inputSite.value = '';
         inputPCI.value = '';
@@ -57,26 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
         inputPCI.disabled = false;  
         autocompleteList.innerHTML = '';
         
-        // As mensagens de erro (siteError.textContent, pciError.textContent) 
-        // são limpas no início do submit, ou após a validação bem sucedida.
-        // Se a validação falhar, queremos que elas permaneçam visíveis antes do foco.
         inputSite.focus();
     }
     
-    // Função auxiliar para limpar *apenas* as mensagens de erro
     function clearErrors() {
         siteError.textContent = '';
         pciError.textContent = '';
     }
-
-    // --- Lógica de Validação e Formatação (event listeners) ---
 
     inputSite.addEventListener('input', (e) => {
         let value = e.target.value;
         value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         e.target.value = value;
         
-        // Limpa erros APENAS do campo atual ao digitar
         siteError.textContent = ''; 
 
         if (value.length > 0) {
@@ -99,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         value = value.replace(/[^0-9]/g, '');
         e.target.value = value;
 
-        // Limpa erros APENAS do campo atual ao digitar
         pciError.textContent = ''; 
 
         if (value.length > 0) {
@@ -112,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Lógica de Autocomplete (sem alterações) ---
     function showAutocomplete(text) {
         if (text.length < 6) return;
 
@@ -131,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.addEventListener('click', () => {
                     inputSite.value = site;
                     autocompleteList.innerHTML = '';
-                    clearErrors(); // Limpa erros ao selecionar autocomplete
+                    clearErrors(); 
                     inputPCI.disabled = true;
                     inputPCI.value = '';
                     searchForm.focus(); 
@@ -147,11 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Lógica de Pesquisa (COM EXIBIÇÃO DE ERROS E LIMPEZA CORRIGIDAS) ---
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // 1. Limpa resultados anteriores e erros no início
         dataTableBody.innerHTML = '';
         resultsContainer.classList.add('hidden');
         noResultsMessage.classList.add('hidden');
@@ -165,14 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let validationFailed = false;
 
-        // Validação 1: Exclusividade
         if (!isSiteFilled && !isPciFilled) {
              siteError.textContent = 'Preencha o campo Site ou o campo PCI para pesquisar.';
              pciError.textContent = 'Preencha o campo Site ou o campo PCI para pesquisar.';
              validationFailed = true;
         }
         
-        // Validação 2: Formato e Existência (Site)
         if (!validationFailed && isSiteFilled) {
             if (siteValue.length !== 7 || !/^[A-Z0-9]{7}$/.test(siteValue)) {
                 siteError.textContent = 'O campo Site deve ter exatamente 7 caracteres (letras e números).';
@@ -184,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } 
         
-        // Validação 2: Formato e Existência (PCI)
         else if (!validationFailed && isPciFilled) {
             if (pciValue.length === 0 || pciValue.length > 3 || !/^[0-9]+$/.test(pciValue)) {
                  pciError.textContent = 'O campo PCI deve ter de 1 a 3 dígitos numéricos.';
@@ -196,16 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // *** CORREÇÃO AQUI: Se falhar, RETORNA e DEIXA AS MENSAGENS VISÍVEIS ***
         if (validationFailed) {
-            // Não chama resetForm() para não limpar os campos e as mensagens de erro.
             return;
         }
         
-        // Se a validação passou, limpamos os erros antes da pesquisa e seguimos para o filtro
         clearErrors();
 
-        // 3. Filtragem
         let filteredData = [];
         if (isSiteFilled) {
             filteredData = allData.filter(item => item.site === siteValue);
@@ -213,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
             filteredData = allData.filter(item => item.pci === pciValue);
         }
 
-        // 4. Exibe os Resultados
         if (filteredData.length > 0) {
             renderTable(filteredData);
             resultsContainer.classList.remove('hidden');
@@ -222,11 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
             noResultsMessage.classList.remove('hidden');
         }
 
-        // *** LIMPEZA GARANTIDA APÓS PESQUISA BEM SUCEDIDA/SEM RESULTADOS ***
         resetForm(); 
     });
 
-    // --- Lógica de Renderização da Tabela (sem alterações) ---
     function renderTable(data) {
         data.forEach(item => {
             const row = dataTableBody.insertRow();
